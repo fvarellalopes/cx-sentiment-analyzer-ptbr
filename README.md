@@ -101,15 +101,60 @@ O arquivo `app.py` implementa uma interface simples em Streamlit para testar o m
 
 ### 1. Clonar o repositório
 
+```bash
+git clone https://github.com/fvarellalopes/cx-sentiment-analyzer-ptbr.git
+cd cx-sentiment-analyzer-ptbr
+```
 
-### 2. Criar ambiente e instalar dependências
+### 2. Opção A: Rodar com Docker (recomendado)
+
+#### Pré-requisitos
+- Docker instalado ([instruções de instalação](https://docs.docker.com/get-docker/))
+- Docker Compose instalado (geralmente incluído com Docker Desktop)
+
+#### Usando Docker Compose (mais fácil)
+
+```bash
+docker-compose up
+```
+
+Isso irá:
+- Construir a imagem Docker automaticamente
+- Iniciar o container
+- Expor a aplicação na porta 8501
+
+Acesse: `http://localhost:8501`
+
+Para parar o container:
+```bash
+docker-compose down
+```
+
+#### Usando Docker diretamente
+
+```bash
+# Construir a imagem
+docker build -t cx-sentiment-analyzer-ptbr .
+
+# Executar o container
+docker run -p 8501:8501 cx-sentiment-analyzer-ptbr
+```
+
+Acesse: `http://localhost:8501`
+
+### 2. Opção B: Rodar localmente com Python
+
+#### 2.1. Criar ambiente e instalar dependências
 
 Recomenda-se usar Python 3.10+.
 
+```bash
+python -m venv venv
+source venv/bin/activate  # No Windows: venv\Scripts\activate
+pip install -r requirements.txt
+```
 
-(As dependências principais são: `pandas`, `scikit-learn`, `joblib`, `streamlit`.)
-
-### 3. Treinar o modelo (opcional)
+#### 2.2. Treinar o modelo (opcional)
 
 Se quiser refazer o treino:
 
@@ -117,10 +162,93 @@ Se quiser refazer o treino:
 2. Execute as células até a etapa de salvamento do modelo (`joblib.dump(...)`).  
 3. Confirme que o arquivo `tfidf_logreg_model.pkl` foi gerado na raiz do projeto ou no caminho esperado pelo `app.py`.
 
-### 4. Rodar o app Streamlit
+#### 2.3. Rodar o app Streamlit
 
+```bash
+streamlit run app.py
+```
 
 Depois, acesse o link gerado (geralmente `http://localhost:8501`) no navegador.
+
+---
+
+## Deployment em servidor
+
+### Usando Docker em servidor de produção
+
+#### 1. Em um servidor Linux (Ubuntu/Debian)
+
+```bash
+# Instalar Docker
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+
+# Clonar o repositório
+git clone https://github.com/fvarellalopes/cx-sentiment-analyzer-ptbr.git
+cd cx-sentiment-analyzer-ptbr
+
+# Construir e executar
+docker-compose up -d
+```
+
+O parâmetro `-d` executa o container em segundo plano (detached mode).
+
+#### 2. Verificar logs
+
+```bash
+docker-compose logs -f
+```
+
+#### 3. Gerenciar o container
+
+```bash
+# Parar o container
+docker-compose stop
+
+# Reiniciar o container
+docker-compose restart
+
+# Remover o container
+docker-compose down
+```
+
+#### 4. Atualizar a aplicação
+
+```bash
+git pull origin main
+docker-compose down
+docker-compose up -d --build
+```
+
+### Configurações de produção
+
+Para executar em produção, considere:
+
+- **Proxy reverso**: Use Nginx ou Caddy na frente da aplicação
+- **SSL/HTTPS**: Configure certificados SSL para conexões seguras
+- **Firewall**: Abra apenas as portas necessárias (80, 443)
+- **Monitoramento**: Configure logs e alertas
+- **Backup**: Faça backup regular dos dados e configurações
+
+### Exemplo de configuração Nginx
+
+```nginx
+server {
+    listen 80;
+    server_name seu-dominio.com;
+
+    location / {
+        proxy_pass http://localhost:8501;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
 
 ---
 
