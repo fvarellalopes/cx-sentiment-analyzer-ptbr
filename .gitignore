@@ -4,6 +4,9 @@ __pycache__/
 *$py.class
 *.so
 .Python
+env/
+venv/
+ENV/
 build/
 develop-eggs/
 dist/
@@ -19,12 +22,6 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
-
-# Virtual environments
-venv/
-ENV/
-env/
-.venv
 
 # Jupyter Notebook
 .ipynb_checkpoints
@@ -56,3 +53,14 @@ Thumbs.db
 # Temporary files
 *.log
 *.tmp
+# Model files (if large)
+*.pkl
+*.h5
+*.model
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
