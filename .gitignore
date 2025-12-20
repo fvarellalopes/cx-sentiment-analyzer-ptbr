@@ -32,6 +32,27 @@ wheels/
 # VS Code
 .vscode/
 
+# Model files (should be generated, not committed)
+*.pkl
+*.joblib
+*.h5
+*.pth
+
+# Data files
+*.csv
+*.xlsx
+*.json
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Streamlit
+.streamlit/
+
+# Temporary files
+*.log
+*.tmp
 # Model files (if large)
 *.pkl
 *.h5

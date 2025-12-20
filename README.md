@@ -33,9 +33,18 @@ Este projeto propõe um MVP de produto que:
 
 ## Abordagem técnica
 
-### Modelagem
+### Implementação atual
 
-No notebook de modelagem é treinado um pipeline de NLP em Python usando scikit-learn: [file:138]
+A aplicação Streamlit utiliza uma **análise léxica robusta** especializada em português brasileiro:
+
+- **Léxico expandido PT-BR**: Dicionários customizados com mais de 30 palavras positivas e 35 negativas relacionadas especificamente ao contexto de atendimento ao cliente.
+- **Cálculo de sentimento**: Análise baseada na contagem ponderada de palavras-chave de cada polaridade.
+- **Sistema de confiança**: Probabilidades normalizadas que indicam o grau de certeza da classificação.
+- **Classificação em 3 classes**: Bom, Ruim ou Neutro, com threshold configurável.
+
+### Modelagem avançada (opcional)
+
+O notebook de modelagem demonstra um pipeline de NLP mais sofisticado usando scikit-learn: [file:138]
 
 - **Vetorização de texto** com `TfidfVectorizer`, em português, usando:
   - n-gramas de 1 a 2 palavras (`ngram_range=(1, 2)`).
@@ -46,15 +55,21 @@ No notebook de modelagem é treinado um pipeline de NLP em Python usando scikit-
 
 O modelo é treinado para distinguir entre tickets **positivos (1)** e **negativos (0)** a partir de frases rotuladas manualmente. [file:138]
 
-Após o treino, o pipeline é serializado em disco (ex.: `tfidf_logreg_model.pkl`) usando `joblib` para ser consumido pelo app Streamlit.
+Após o treino, o pipeline pode ser serializado em disco (ex.: `tfidf_logreg_model.pkl`) usando `joblib` para ser consumido pelo app Streamlit.
 
-### Métricas
+### Métricas e validação
 
-O modelo é avaliado com métricas padrão de classificação (accuracy, precision, recall, f1) em um conjunto de validação separado. [file:138]
+A abordagem léxica atual é transparente e interpretável, permitindo:
 
-Em vez de otimizar apenas um número, a análise do desempenho considera:
+- Identificação imediata das palavras-chave que influenciaram a classificação.
+- Ajuste rápido do léxico conforme feedback dos usuários de CX.
+- Zero dependência de dados de treino ou infraestrutura de ML.
 
-- Exemplos onde o modelo erra (ex.: frases negativas classificadas como positivas).
+Para a abordagem de ML no notebook, métricas padrão de classificação (accuracy, precision, recall, f1) são avaliadas em um conjunto de validação separado. [file:138]
+
+Em ambas abordagens, considera-se:
+
+- Exemplos onde o sistema erra (ex.: frases negativas classificadas como positivas).
 - O impacto desses erros na operação de CX.
 - A necessidade de uma **classe Neutro** baseada em limiar de confiança para reduzir falsos positivos/negativos na ponta.
 
@@ -140,9 +155,16 @@ docker build -t cx-sentiment-analyzer-ptbr .
 docker run -p 8501:8501 cx-sentiment-analyzer-ptbr
 ```
 
-Acesse: `http://localhost:8501`
+```bash
+# Criar ambiente virtual (opcional, mas recomendado)
+python -m venv venv
+source venv/bin/activate  # No Windows: venv\Scripts\activate
 
-### 2. Opção B: Rodar localmente com Python
+# Instalar dependências
+pip install -r requirements.txt
+```
+
+As dependências principais são: `pandas`, `scikit-learn`, `joblib`, `streamlit`, `numpy`.
 
 #### 2.1. Criar ambiente e instalar dependências
 
@@ -156,11 +178,13 @@ pip install -r requirements.txt
 
 #### 2.2. Treinar o modelo (opcional)
 
-Se quiser refazer o treino:
+Se quiser refazer o treino do modelo de machine learning:
 
 1. Abra o notebook `cx_ticket_sentiment_modeling.ipynb` em Jupyter/VSCode. [file:138]  
 2. Execute as células até a etapa de salvamento do modelo (`joblib.dump(...)`).  
-3. Confirme que o arquivo `tfidf_logreg_model.pkl` foi gerado na raiz do projeto ou no caminho esperado pelo `app.py`.
+3. Confirme que o arquivo `tfidf_logreg_model.pkl` foi gerado na raiz do projeto.
+
+**Nota:** O app atual funciona com análise léxica robusta em PT-BR e não requer o modelo treinado para funcionar.
 
 #### 2.3. Rodar o app Streamlit
 
